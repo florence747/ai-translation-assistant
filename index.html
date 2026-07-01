@@ -1,12 +1,166 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI 译文质检与译后编辑助手</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 译文质检与译后编辑助手</title>
+<style>
+:root {
+  color: #1d2430;
+  background: #f6f7f9;
+  font-family: Inter, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: #f6f7f9; }
+button, input, select, textarea { font: inherit; }
+button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 38px; padding: 0 14px; border: 1px solid #186b61; border-radius: 6px;
+  background: #186b61; color: #fff; cursor: pointer; white-space: nowrap;
+}
+button:hover { background: #0f514a; }
+button.secondary { border-color: #c8d0d8; background: #fff; color: #27313f; }
+button.secondary:hover { background: #eef3f5; }
+button.danger-text { color: #a83232; }
+button.icon-button { width: 34px; min-height: 34px; padding: 0; border-color: #d8dee5; background: #fff; color: #596574; }
+input, select, textarea { width: 100%; border: 1px solid #cfd7df; border-radius: 6px; background: #fff; color: #1d2430; outline: none; }
+input, select { min-height: 38px; padding: 8px 10px; }
+textarea { min-height: 220px; resize: vertical; padding: 12px; line-height: 1.65; }
+input:focus, select:focus, textarea:focus { border-color: #186b61; box-shadow: 0 0 0 3px rgba(24, 107, 97, 0.13); }
+main { width: min(1480px, 100%); margin: 0 auto; padding: 0 18px 48px; }
+.app-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 28px 0 18px; border-bottom: 1px solid #dce2e8; }
+.app-header h1, .section h2 { margin: 0; letter-spacing: 0; }
+.app-header h1 { font-size: 30px; line-height: 1.2; }
+.eyebrow { margin: 0 0 6px; color: #637083; font-size: 13px; }
+.app-lead { max-width: 660px; margin: 10px 0 0; color: #405066; line-height: 1.6; }
+.usage-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px 0 0; }
+.usage-steps div { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 10px 12px; border: 1px solid #d8dee5; border-radius: 8px; background: #fff; }
+.usage-steps strong { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #186b61; color: #fff; font-size: 14px; }
+.usage-steps span { color: #324154; font-weight: 700; }
+.header-summary { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.header-summary span { padding: 6px 10px; border: 1px solid #cbd4dc; border-radius: 999px; background: #fff; color: #405066; font-size: 13px; }
+.section { padding: 22px 0; border-bottom: 1px solid #dce2e8; }
+.section-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
+.section h2 { font-size: 20px; }
+.toolbar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.settings-grid { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 12px; }
+label span, .textarea-field > span { display: block; margin-bottom: 6px; color: #405066; font-size: 14px; }
+.input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.stats-line { margin: 8px 0 0; color: #637083; font-size: 13px; }
+.table-wrap { width: 100%; overflow-x: auto; border: 1px solid #d8dee5; border-radius: 8px; background: #fff; }
+table { width: 100%; min-width: 900px; border-collapse: collapse; }
+th, td { padding: 10px; border-bottom: 1px solid #e7ebef; text-align: left; vertical-align: top; }
+th { background: #edf1f4; color: #324154; font-size: 13px; font-weight: 700; }
+td { font-size: 14px; }
+td input, td select { min-width: 140px; }
+.empty-cell { padding: 22px; color: #637083; text-align: center; }
+.stats-grid { display: grid; grid-template-columns: repeat(8, minmax(110px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.stat-card { min-height: 82px; padding: 12px; border: 1px solid #d8dee5; border-radius: 8px; background: #fff; }
+.stat-card span { display: block; margin-bottom: 10px; color: #637083; font-size: 13px; }
+.stat-card strong { font-size: 26px; }
+.stat-card.high strong, .badge.high { color: #b3261e; }
+.stat-card.medium strong, .badge.medium { color: #a15c00; }
+.stat-card.low strong, .badge.low { color: #166534; }
+.badge { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; padding: 3px 8px; border-radius: 999px; background: #f4f6f8; font-weight: 700; }
+.filter-bar { display: grid; grid-template-columns: minmax(180px, 240px) minmax(180px, 240px) 1fr; align-items: end; gap: 12px; margin-bottom: 14px; }
+.filter-bar p { margin: 0 0 8px; color: #637083; font-size: 13px; }
+.checklist-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.check-item { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid #d8dee5; border-radius: 6px; background: #fff; }
+.check-item input { width: auto; min-height: auto; }
+.editing-table table { min-width: 1280px; }
+.editing-table textarea { min-width: 220px; min-height: 112px; }
+.notice { margin-bottom: 12px; padding: 10px 12px; border-left: 4px solid #a15c00; border-radius: 6px; background: #fff6e6; color: #5f3a00; }
+.export-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.copy-status { margin: 10px 0 0; color: #166534; }
+@media (max-width: 1020px) {
+  .app-header, .section-header { align-items: stretch; flex-direction: column; }
+  .usage-steps, .filter-bar { grid-template-columns: 1fr; }
+  .toolbar, .header-summary { justify-content: flex-start; }
+  .settings-grid, .input-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+}
+@media (max-width: 560px) {
+  main { padding: 0 12px 36px; }
+  .app-header h1 { font-size: 24px; }
+  .toolbar, .export-grid { display: grid; grid-template-columns: 1fr; }
+  button { width: 100%; }
+}
+
+.dirty-banner{display:none;margin:12px 0 0;padding:10px 12px;border-left:4px solid #a15c00;border-radius:6px;background:#fff6e6;color:#5f3a00}.bulk-panel{display:none;margin-top:12px;padding:12px;border:1px solid #d8dee5;border-radius:8px;background:#fff}.bulk-panel textarea{min-height:150px}.bulk-help,.section-note{margin:8px 0 10px;color:#637083;font-size:13px;line-height:1.5}.issue-clickable{cursor:pointer}.issue-clickable:hover{background:#f7faf9}.row-highlight{outline:3px solid rgba(24,107,97,.28);outline-offset:-3px}.privacy-note{padding:18px 0 36px;color:#637083;font-size:13px;line-height:1.6}.status-pill{display:inline-flex;margin-left:8px;color:#166534;font-size:13px}
+
+</style>
+</head>
+<body>
+<main>
+<header class="app-header"><div><p class="eyebrow">AI Translation QA & Post-editing Assistant · standalone v2.0</p><h1>AI 译文质检与译后编辑助手</h1><p class="app-lead">本工具不直接翻译，只用于 AI 译文规则检查、人工译后编辑和结果导出。基础版不联网、不调用 AI API，所有数据只保存在本地浏览器。</p><div class="dirty-banner" id="dirtyBanner">内容已变更，请重新检查，避免继续使用过期结果。</div></div><div class="header-summary"><span>单文件</span><span>规则检查</span><span>本地保存</span><span>结果导出</span></div></header>
+<section class="usage-steps"><div><strong>1</strong><span>输入文本和术语表：载入示例 / 添加术语</span></div><div><strong>2</strong><span>开始检查：开始检查并生成编辑表</span></div><div><strong>3</strong><span>编辑并导出：修改译文 / 导出结果</span></div></section>
+<section class="section"><div class="section-header"><div><p class="eyebrow">区域 1</p><h2>项目设置</h2><p class="section-note">设置会进入导出的 Markdown 报告。</p></div><span class="status-pill" id="saveStatus">已自动保存到本地浏览器</span></div><div class="settings-grid"><label><span>项目名称</span><input id="projectName" placeholder="例如：官网产品页译后编辑" /></label><label><span>翻译方向</span><select id="direction"><option value="en-zh">英译中</option><option value="zh-en">中译英</option></select></label><label><span>文本类型</span><select id="textType"><option value="technical">技术文档</option><option value="website">官网文案</option><option value="product">产品说明</option><option value="app-ui">App UI</option><option value="academic">学术摘要</option><option value="general" selected>通用文本</option></select></label><label><span>目标风格</span><select id="targetStyle"><option value="accurate">准确简洁</option><option value="natural">自然流畅</option><option value="formal">正式专业</option><option value="marketing">营销本地化</option><option value="academic">学术规范</option></select></label><label><span>检查强度</span><select id="checkLevel"><option value="basic">基础检查</option><option value="standard" selected>标准检查</option><option value="strict">严格检查</option></select></label></div></section>
+<section class="section"><div class="section-header"><div><p class="eyebrow">区域 2</p><h2>双语输入</h2></div><div class="toolbar"><button class="secondary" id="loadSample">载入示例数据</button><button class="secondary" id="normalizeBtn">自动分段</button><button class="secondary danger-text" id="clearBtn">清空文本</button><button class="secondary danger-text" id="clearLocalBtn">清空本地数据</button><button class="secondary" id="makeRows">生成编辑表</button><button id="runChecks">开始检查并生成编辑表</button></div></div><div class="input-grid"><label class="textarea-field"><span>原文</span><textarea id="sourceText" placeholder="粘贴原文，支持多段文本"></textarea><p class="stats-line" id="sourceStats">0 段 · 0 词 · 0 字符</p></label><label class="textarea-field"><span>AI 译文</span><textarea id="translationText" placeholder="粘贴 AI 译文，支持多段文本"></textarea><p class="stats-line" id="translationStats">0 段 · 0 个中文字符 · 0 字符</p></label></div></section>
+<section class="section"><div class="section-header"><div><p class="eyebrow">区域 3</p><h2>术语表</h2><p class="section-note">批量导入支持 Tab、竖线或逗号分隔：原文术语、指定译名、禁用译名、备注。</p></div><div class="toolbar"><button class="secondary" id="addTerm">添加</button><button class="secondary" id="toggleBulk">批量导入术语</button><button class="secondary danger-text" id="clearTerms">清空</button><button class="secondary" id="exportTermsTop">导出 CSV</button></div></div><div class="bulk-panel" id="bulkPanel"><textarea id="bulkTerms" placeholder="localization | 本地化 | 地方化、本土化 | 软件本地化语境&#10;workflow&#9;工作流&#9;工作流程&#9;技术文档语境"></textarea><p class="bulk-help">每行一条术语。禁用译名可用逗号、中文逗号、分号、中文分号或斜杠分隔。</p><div class="toolbar"><button id="importTerms">导入术语</button><button class="secondary" id="cancelBulk">收起</button></div></div><div class="table-wrap"><table><thead><tr><th>原文术语</th><th>指定译名</th><th>禁用译名</th><th>备注</th><th>操作</th></tr></thead><tbody id="termsBody"></tbody></table></div></section>
+<section class="section"><div class="section-header"><div><p class="eyebrow">区域 4</p><h2>自动检查</h2></div></div><div class="stats-grid" id="issueStats"></div><div class="filter-bar"><label><span>风险筛选</span><select id="severityFilter"><option value="all">全部风险</option><option value="high">高风险</option><option value="medium">中风险</option><option value="low">低风险</option></select></label><label><span>类型筛选</span><select id="typeFilter"><option value="all">全部类型</option><option value="术语">术语</option><option value="数字">数字</option><option value="专名">专名</option><option value="英文残留">英文残留</option><option value="段落">段落</option></select></label><p id="filterCount">当前显示 0 / 0 条</p></div><div class="checklist-row" id="styleChecklist"></div><div class="table-wrap"><table><thead><tr><th>风险等级</th><th>问题类型</th><th>问题描述</th><th>建议处理</th><th>状态</th></tr></thead><tbody id="issuesBody"></tbody></table></div></section>
+<section class="section"><div class="section-header"><div><p class="eyebrow">区域 5</p><h2>双语译后编辑表</h2></div></div><div id="mismatchNotice"></div><div class="table-wrap editing-table"><table><thead><tr><th>编号</th><th>原文</th><th>AI 译文</th><th>检测问题</th><th>修改后译文</th><th>修改说明</th><th>状态</th></tr></thead><tbody id="rowsBody"></tbody></table></div></section>
+<section class="section export-section"><div class="section-header"><div><p class="eyebrow">区域 6</p><h2>导出</h2></div></div><div class="export-grid"><button id="copyFinal">复制最终译文</button><button class="secondary" id="exportTxt">最终译文 TXT</button><button class="secondary" id="exportMd">检查报告 MD</button><button class="secondary" id="exportRows">修改记录 CSV</button><button class="secondary" id="exportTermsBottom">术语表 CSV</button></div><p class="copy-status" id="copyStatus"></p></section>
+<footer class="privacy-note">隐私说明：基础版不上传文本、不调用 AI API、不连接后端。输入内容、术语表、检查结果和编辑记录仅保存在当前浏览器的 localStorage 中；清空浏览器缓存或点击“清空本地数据”会删除这些数据。</footer>
+</main>
+<script>
+var terms=[],issues=[],rows=[],checklistState={},isDirty=false;
+var sampleSource=['AI-powered localization platforms help teams manage translation workflows more efficiently.','With terminology management, translation memory, and quality assurance tools, project managers can improve consistency across multilingual content.','The new version supports 30% faster review speed and integrates with API-based automation.'].join('\n\n');
+var sampleTrans=['AI 驱动的地方化平台帮助团队更高效地管理翻译工作流程。','通过术语管理、翻译记忆和质量保障工具，项目经理可以提高多语言内容的一致性。','新版本支持更快的审查速度，并集成了基于 API 的自动化。'].join('\n\n');
+var styleTips={technical:['术语是否统一','句子是否准确简洁','数字和单位是否正确','操作步骤是否清楚'],website:['译文是否自然','是否过度直译','是否符合中文用户阅读习惯','是否保留宣传效果'],product:['功能描述是否准确','卖点是否清楚','术语是否统一','信息是否完整'],'app-ui':['是否足够简短','是否适合作为按钮或菜单','是否避免解释过多'],academic:['表达是否正式','逻辑关系是否清楚','术语是否规范','是否避免口语化'],general:['准确性','完整性','自然度','术语一致性','数字专名保留']};
+var residueWhitelist=['AI','API','QA','UI','CAT','URL','HTML','CSS','CSV','JSON','XML','PDF','OCR','GPT','DEEPL','CROWDIN','MICROSOFT','TMX','XLIFF','HTTP','HTTPS'];
+function el(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function csv(v){var t=String(v==null?'':v);return /[",\n\r]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t}
+function mdCell(v){return String(v==null?'':v).replace(/\|/g,'\\|').replace(/\r?\n/g,'<br>')}
+function normalize(text){return String(text||'').replace(/\r\n/g,'\n').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim()}
+function split(text){var n=normalize(text);if(!n)return[];return n.split(n.indexOf('\n\n')>=0?/\n{2,}/:/\n+/).map(function(x){return x.trim()}).filter(Boolean)}
+function stats(text){return{p:split(text).length,w:(text.match(/[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)*/g)||[]).length,cjk:(text.match(/[\u4e00-\u9fff]/g)||[]).length,chars:text.length}}
+function escapeReg(v){return String(v).replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&')}
+function includesLoose(text,term){if(!term||!term.trim())return false;var low=String(text).toLowerCase(),t=String(term).toLowerCase();if(/^[A-Za-z][A-Za-z\s-]*$/.test(term))return new RegExp('\\b'+escapeReg(t)+'s?\\b','i').test(low);return low.indexOf(t)>=0}
+function paraWith(text,needle){var ps=split(text);for(var i=0;i<ps.length;i++)if(includesLoose(ps[i],needle))return i;return-1}
+function unique(a){var s={};return a.filter(function(x){if(!x||s[x])return false;s[x]=1;return true})}
+function optionHtml(v,c,l){return '<option value="'+esc(v)+'"'+(v===c?' selected':'')+'>'+esc(l||v)+'</option>'}
+function currentSettings(){return{projectName:el('projectName').value,direction:el('direction').value,textType:el('textType').value,targetStyle:el('targetStyle').value,checkLevel:el('checkLevel').value}}
+function saveState(){try{localStorage.setItem('translation-qa-standalone-v2',JSON.stringify({settings:currentSettings(),sourceText:el('sourceText').value,translationText:el('translationText').value,terms:terms,issues:issues,rows:rows,checklistState:checklistState,isDirty:isDirty}));el('saveStatus').textContent='已自动保存到本地浏览器'}catch(e){el('saveStatus').textContent='本地保存失败'}}
+function loadState(){try{var raw=localStorage.getItem('translation-qa-standalone-v2');if(!raw)return;var s=JSON.parse(raw),st=s.settings||{};el('projectName').value=st.projectName||'';el('direction').value=st.direction||'en-zh';el('textType').value=st.textType||'general';el('targetStyle').value=st.targetStyle||'accurate';el('checkLevel').value=st.checkLevel||'standard';el('sourceText').value=s.sourceText||'';el('translationText').value=s.translationText||'';terms=s.terms||[];issues=s.issues||[];rows=s.rows||[];checklistState=s.checklistState||{};isDirty=!!s.isDirty}catch(e){localStorage.removeItem('translation-qa-standalone-v2')}}
+function setDirty(f){isDirty=!!f;el('dirtyBanner').style.display=isDirty?'block':'none';saveState()}
+function markDirty(){if(issues.length||rows.length)setDirty(true);else saveState()}
+function updateStats(){var s=stats(el('sourceText').value),t=stats(el('translationText').value);el('sourceStats').textContent=s.p+' 段 · '+s.w+' 词 · '+s.chars+' 字符';el('translationStats').textContent=t.p+' 段 · '+t.cjk+' 个中文字符 · '+t.chars+' 字符';renderChecklist()}
+function parseForbidden(v){return String(v||'').split(/[;,，；/]/).map(function(x){return x.trim()}).filter(Boolean)}
+function splitTermLine(line){var c;if(line.indexOf('\t')>=0)c=line.split('\t');else if(line.indexOf('|')>=0)c=line.split('|');else c=line.split(',');return c.map(function(x){return x.trim()})}
+function renderTerms(){var b=el('termsBody');if(!terms.length){b.innerHTML='<tr><td colspan="5" class="empty-cell">暂无术语。点击“添加”或“批量导入术语”。</td></tr>';return}b.innerHTML=terms.map(function(t,i){return '<tr><td><input data-term="src" data-i="'+i+'" value="'+esc(t.sourceTerm)+'"></td><td><input data-term="app" data-i="'+i+'" value="'+esc(t.approvedTranslation)+'"></td><td><input data-term="forbid" data-i="'+i+'" value="'+esc((t.forbiddenTranslations||[]).join('，'))+'"></td><td><input data-term="note" data-i="'+i+'" value="'+esc(t.note||'')+'"></td><td><button class="icon-button" data-delterm="'+i+'">删</button></td></tr>'}).join('')}
+function renderStats(){var d=[['总问题数',issues.length,'neutral'],['高风险',issues.filter(function(x){return x.severity==='high'}).length,'high'],['中风险',issues.filter(function(x){return x.severity==='medium'}).length,'medium'],['低风险',issues.filter(function(x){return x.severity==='low'}).length,'low'],['术语问题',issues.filter(function(x){return x.type==='术语'}).length,'term'],['数字问题',issues.filter(function(x){return x.type==='数字'}).length,'number'],['专名问题',issues.filter(function(x){return x.type==='专名'}).length,'proper'],['英文残留',issues.filter(function(x){return x.type==='英文残留'}).length,'residue']];el('issueStats').innerHTML=d.map(function(x){return '<div class="stat-card '+x[2]+'"><span>'+x[0]+'</span><strong>'+x[1]+'</strong></div>'}).join('')}
+function renderChecklist(){var list=styleTips[el('textType').value]||styleTips.general;el('styleChecklist').innerHTML=list.map(function(x){return '<label class="check-item"><input type="checkbox" data-style="'+esc(x)+'" '+(checklistState[x]?'checked':'')+'><span>'+esc(x)+'</span></label>'}).join('')}
+function addIssue(sev,type,desc,sug,p){issues.push({severity:sev,type:type,description:desc,suggestion:sug,status:'待处理',paragraphIndex:p})}
+function extractNumberTokens(text){var ps=[/\bv?\d+(?:\.\d+){1,3}\b/gi,/\bVersion\s+\d+(?:\.\d+){1,3}\b/gi,/\b\d+(?:\.\d+)?\s?%/g,/\b\d+\s*percent\b/gi,/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Sept\.?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+\d{4}\b/gi,/\b(?:19|20)\d{2}(?:[-/.]\d{1,2}){1,2}\b/g,/\b(?:USD|CNY|EUR|GBP|RMB)\s?\d+(?:\.\d+)?\b/gi,/\b\d+(?:\.\d+)?\s?(?:KB|MB|GB|TB|kg|g|km|m|cm|mm|USD|CNY|EUR|GBP|RMB)\b/gi,/\b\d+(?:,\d{3})*(?:\.\d+)?\b/g];var out=unique(ps.reduce(function(a,p){return a.concat(text.match(p)||[])},[]));return out.filter(function(tok){return !out.some(function(other){return other!==tok&&String(other).indexOf(tok)>=0})})}
+function numericParts(tok){return(String(tok).match(/\d+(?:\.\d+)?/g)||[]).map(function(x){return x.replace(/^0+(?=\d)/,'')})}
+function tokenKept(tok,trans){var compact=String(tok).replace(/\s+/g,'');if(String(trans).replace(/\s+/g,'').indexOf(compact)>=0)return true;var nums=numericParts(tok);return nums.length>0&&nums.every(function(n){return trans.indexOf(n)>=0})}
+function extractProperNouns(text){var urls=text.match(/https?:\/\/[^\s)]+/g)||[],emails=text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi)||[],files=text.match(/\b[\w.-]+\.(?:pdf|docx?|xlsx?|csv|json|xml|html?|txt|tmx|xliff)\b/gi)||[],acros=text.match(/\b[A-Z]{2,}\b/g)||[],models=text.match(/\b[A-Za-z]+-\d+(?:\.\d+)?\b/g)||[],known=text.match(/\b(?:DeepL|Crowdin|Microsoft|Google|OpenAI|ChatGPT|GPT-\d+(?:\.\d+)?|TMX|XLIFF)\b/g)||[],caps=text.match(/\b[A-Z][a-z]+(?:[A-Z][a-z]+)?\b/g)||[],ignore={The:1,With:1,This:1,That:1,These:1,Those:1,A:1,An:1,Version:1,New:1};return unique(urls.concat(emails,files,acros,models,known,caps).filter(function(x){return!ignore[x]}))}
+function isAllowedEnglish(tok,proper){var up=tok.toUpperCase().replace(/-\d+(?:\.\d+)?$/,'');if(residueWhitelist.indexOf(up)>=0)return true;if(proper.some(function(p){return includesLoose(p,tok)||includesLoose(tok,p)}))return true;return terms.some(function(t){return[t.sourceTerm,t.approvedTranslation].filter(Boolean).some(function(a){return includesLoose(a,tok)||includesLoose(tok,a)})})}
+function runChecks(){issues=[];var st=currentSettings(),src=el('sourceText').value,trans=el('translationText').value,level=st.checkLevel,sp=split(src),tp=split(trans),proper=extractProperNouns(src);terms.forEach(function(t){if(!t.sourceTerm||!includesLoose(src,t.sourceTerm))return;var forb=(t.forbiddenTranslations||[]).filter(function(f){return f&&trans.indexOf(f)>=0}),p=forb[0]?paraWith(trans,forb[0]):paraWith(src,t.sourceTerm);if(forb.length)addIssue('high','术语','第 '+(p>=0?p+1:'?')+' 段：术语“'+t.sourceTerm+'”出现禁用译名“'+forb.join('、')+'”。','建议统一替换为指定译名“'+t.approvedTranslation+'”。',p);else if(t.approvedTranslation&&trans.indexOf(t.approvedTranslation)<0)addIssue('medium','术语','第 '+(p>=0?p+1:'?')+' 段：术语“'+t.sourceTerm+'”未检测到指定译名“'+t.approvedTranslation+'”。','请确认是否漏译，或是否使用了项目不一致的译法。',p)});var srcNums=extractNumberTokens(src),transNums=extractNumberTokens(trans),srcSet={};srcNums.forEach(function(tok){numericParts(tok).forEach(function(n){srcSet[n]=1});if(!tokenKept(tok,trans))addIssue('high','数字','第 '+(paraWith(src,tok)+1)+' 段：原文数字、日期、版本号、单位或金额“'+tok+'”未在译文中检测到。','请确认数字是否遗漏或被错误改写。',paraWith(src,tok))});transNums.forEach(function(tok){var nums=numericParts(tok);if(nums.length&&nums.some(function(n){return!srcSet[n]}))addIssue('medium','数字','译文中出现原文未包含的数字或单位“'+tok+'”。','请确认是否为误增或改写错误。',paraWith(trans,tok))});if(level!=='basic'){proper.forEach(function(tok){if(!includesLoose(trans,tok))addIssue('medium','专名','第 '+(paraWith(src,tok)+1)+' 段：原文专名、缩写、URL、邮箱或文件名“'+tok+'”未在译文中保留。','请人工确认是否需要保留或采用固定译名。',paraWith(src,tok))});unique(trans.match(/[A-Za-z]{2,}(?:-[A-Za-z0-9]+)*/g)||[]).forEach(function(tok){var min=level==='strict'?2:3;if(tok.length>=min&&!isAllowedEnglish(tok,proper))addIssue('medium','英文残留','第 '+(paraWith(trans,tok)+1)+' 段：译文中检测到英文片段“'+tok+'”，疑似未翻译。','请确认该英文是否需要翻译，或是否属于允许保留的缩写、URL、邮箱、专名或术语。',paraWith(trans,tok))});if(sp.length!==tp.length)addIssue(level==='strict'?'high':'medium','段落','原文 '+sp.length+' 段，译文 '+tp.length+' 段，段落结构可能不一致。','请检查原文与译文段落是否逐段对应。',-1)}setDirty(false);renderIssues();makeRows(false);saveState()}
+function filteredIssueEntries(){var sf=el('severityFilter').value,tf=el('typeFilter').value;return issues.map(function(x,i){return{issue:x,index:i}}).filter(function(e){return(sf==='all'||e.issue.severity===sf)&&(tf==='all'||e.issue.type===tf)})}
+function renderIssues(){renderStats();var b=el('issuesBody'),view=filteredIssueEntries();el('filterCount').textContent='当前显示 '+view.length+' / '+issues.length+' 条';if(!issues.length){b.innerHTML='<tr><td colspan="5" class="empty-cell">尚未生成检查结果。点击“开始检查并生成编辑表”后会在这里显示问题。</td></tr>';return}if(!view.length){b.innerHTML='<tr><td colspan="5" class="empty-cell">当前筛选条件下没有问题。</td></tr>';return}b.innerHTML=view.map(function(e){var x=e.issue,i=e.index,label=x.severity==='high'?'高':(x.severity==='medium'?'中':'低');return '<tr class="issue-clickable" data-jump-row="'+(x.paragraphIndex>=0?x.paragraphIndex+1:'')+'"><td><span class="badge '+x.severity+'">'+label+'</span></td><td>'+esc(x.type)+'</td><td>'+esc(x.description)+'</td><td>'+esc(x.suggestion)+'</td><td><select data-issue="'+i+'">'+optionHtml('待处理',x.status)+optionHtml('已处理',x.status)+optionHtml('忽略',x.status)+'</select></td></tr>'}).join('')}
+function makeRows(shouldSave){var sp=split(el('sourceText').value),tp=split(el('translationText').value),max=Math.max(sp.length,tp.length);rows=[];for(var i=0;i<max;i++){var ri=issues.filter(function(x){return x.paragraphIndex===i}).map(function(x){return x.description});rows.push({sourceText:sp[i]||'',aiTranslation:tp[i]||'',detectedIssues:ri,revisedTranslation:tp[i]||'',revisionNote:'',status:ri.length?'需确认':'待修改'})}renderRows();if(shouldSave!==false)saveState()}
+function renderRows(){var sp=split(el('sourceText').value),tp=split(el('translationText').value);el('mismatchNotice').innerHTML=sp.length!==tp.length?'<div class="notice">原文和译文段落数不一致，已按最大行数生成编辑表，请手动检查段落对应关系。</div>':'';var b=el('rowsBody');if(!rows.length){b.innerHTML='<tr><td colspan="7" class="empty-cell">尚未生成编辑表。点击“生成编辑表”或“开始检查并生成编辑表”。</td></tr>';return}b.innerHTML=rows.map(function(r,i){return '<tr id="edit-row-'+(i+1)+'"><td>'+(i+1)+'</td><td>'+esc(r.sourceText)+'</td><td>'+esc(r.aiTranslation)+'</td><td>'+esc((r.detectedIssues||[]).join('；'))+'</td><td><textarea data-row="rev" data-i="'+i+'">'+esc(r.revisedTranslation)+'</textarea></td><td><textarea data-row="note" data-i="'+i+'">'+esc(r.revisionNote)+'</textarea></td><td><select data-row="status" data-i="'+i+'">'+optionHtml('待修改',r.status)+optionHtml('已修改',r.status)+optionHtml('忽略',r.status)+optionHtml('需确认',r.status)+'</select></td></tr>'}).join('')}
+function finalText(){if(rows.length)return rows.map(function(r){return r.revisedTranslation||r.aiTranslation}).filter(Boolean).join('\n\n');return normalize(el('translationText').value)}
+function termCsv(){return[['原文术语','指定译名','禁用译名','备注','确认状态','来源']].concat(terms.map(function(t){return[t.sourceTerm,t.approvedTranslation,(t.forbiddenTranslations||[]).join('；'),t.note||'','','手动维护']})).map(function(r){return r.map(csv).join(',')}).join('\n')}
+function rowsCsv(){return[['编号','原文','AI 译文','检测问题','风险等级','问题类型','修改后译文','修改说明','状态']].concat(rows.map(function(r,i){var ri=issues.filter(function(x){return x.paragraphIndex===i});return[i+1,r.sourceText,r.aiTranslation,(r.detectedIssues||[]).join('；'),unique(ri.map(function(x){return x.severity})).join('；'),unique(ri.map(function(x){return x.type})).join('；'),r.revisedTranslation,r.revisionNote,r.status]})).map(function(r){return r.map(csv).join(',')}).join('\n')}
+function issueStatsMd(){return['术语','数字','专名','英文残留','段落'].map(function(t){return'- '+t+'：'+issues.filter(function(x){return x.type===t}).length}).join('\n')}
+function completionText(){if(!rows.length)return'尚未生成编辑表';var rev=rows.filter(function(r){return r.status==='已修改'}).length,handled=issues.filter(function(i){return i.status==='已处理'||i.status==='忽略'}).length;return'编辑表 '+rev+'/'+rows.length+' 行标记为已修改；问题 '+handled+'/'+issues.length+' 条已处理或忽略。'}
+function reportMd(){var st=currentSettings(),ss=stats(el('sourceText').value),ts=stats(el('translationText').value),list=styleTips[st.textType]||styleTips.general;return['# '+(st.projectName||'AI 译文质检报告'),'','## 项目设置','','- 翻译方向：'+st.direction,'- 文本类型：'+st.textType,'- 目标风格：'+st.targetStyle,'- 检查强度：'+st.checkLevel,'','## 文本统计','','- 原文段落：'+ss.p,'- 原文词数：'+ss.w,'- 原文字符：'+ss.chars,'- 译文段落：'+ts.p,'- 译文中文字符：'+ts.cjk,'- 译文字符：'+ts.chars,'','## 问题统计','','- 总问题数：'+issues.length,'- 高风险：'+issues.filter(function(x){return x.severity==='high'}).length,'- 中风险：'+issues.filter(function(x){return x.severity==='medium'}).length,'- 低风险：'+issues.filter(function(x){return x.severity==='low'}).length,issueStatsMd(),'','## 术语表摘要','','- 术语条数：'+terms.length].concat(terms.slice(0,20).map(function(t){return'- '+t.sourceTerm+' → '+t.approvedTranslation+'；禁用：'+(t.forbiddenTranslations||[]).join('、')}),['','## 修改完成度','',completionText(),'','## 风格检查清单','']).concat(list.map(function(x){return'- ['+(checklistState[x]?'x':' ')+'] '+x}),['','## 问题详情','','| 风险等级 | 问题类型 | 问题描述 | 建议处理 | 状态 |','| --- | --- | --- | --- | --- |']).concat(issues.length?issues.map(function(x){return'| '+mdCell(x.severity)+' | '+mdCell(x.type)+' | '+mdCell(x.description)+' | '+mdCell(x.suggestion)+' | '+mdCell(x.status)+' |'}):['| - | - | 暂无问题 | - | - |']).join('\n')}
+function download(name,text,type){var blob=new Blob(['\ufeff',text],{type:type||'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function baseName(){return(el('projectName').value||'AI译文质检').replace(/[\\/:*?"<>|\s]+/g,'_')+'_'+new Date().toISOString().slice(0,10)}
+function loadSample(){el('projectName').value='AI 译文质检示例';el('textType').value='technical';el('checkLevel').value='standard';el('sourceText').value=sampleSource;el('translationText').value=sampleTrans;terms=[{sourceTerm:'localization',approvedTranslation:'本地化',forbiddenTranslations:['地方化'],note:'软件和翻译行业语境'},{sourceTerm:'workflow',approvedTranslation:'工作流',forbiddenTranslations:['工作流程'],note:'技术语境优先用“工作流”'},{sourceTerm:'translation memory',approvedTranslation:'翻译记忆库',forbiddenTranslations:['翻译记忆'],note:'工具功能语境'},{sourceTerm:'quality assurance',approvedTranslation:'质量保证',forbiddenTranslations:['质量保障'],note:'QA 常用译名'}];checklistState={};updateStats();renderTerms();runChecks()}
+function importBulkTerms(){var lines=el('bulkTerms').value.split(/\r?\n/).map(function(x){return x.trim()}).filter(Boolean),added=0;lines.forEach(function(line){var c=splitTermLine(line);if(c.length>=2){terms.push({sourceTerm:c[0]||'',approvedTranslation:c[1]||'',forbiddenTranslations:parseForbidden(c[2]||''),note:c.slice(3).join(' ')||''});added++}});el('bulkTerms').value='';el('bulkPanel').style.display='none';renderTerms();markDirty();el('copyStatus').textContent='已导入 '+added+' 条术语。'}
+function clearAllLocal(){if(!confirm('确定清空本地保存的项目数据吗？此操作不可撤销。'))return;localStorage.removeItem('translation-qa-standalone-v2');el('projectName').value='';el('sourceText').value='';el('translationText').value='';terms=[];issues=[];rows=[];checklistState={};setDirty(false);updateStats();renderTerms();renderIssues();renderRows();el('copyStatus').textContent='本地保存的数据已清空。'}
+['projectName','direction','textType','targetStyle','checkLevel'].forEach(function(id){el(id).addEventListener('change',function(){updateStats();markDirty()});el(id).addEventListener('input',markDirty)});el('sourceText').addEventListener('input',function(){updateStats();markDirty()});el('translationText').addEventListener('input',function(){updateStats();markDirty()});el('severityFilter').addEventListener('change',renderIssues);el('typeFilter').addEventListener('change',renderIssues);el('loadSample').onclick=loadSample;el('normalizeBtn').onclick=function(){el('sourceText').value=normalize(el('sourceText').value);el('translationText').value=normalize(el('translationText').value);updateStats();markDirty()};el('clearBtn').onclick=function(){if(!confirm('确定清空原文、译文和当前检查结果吗？'))return;el('sourceText').value='';el('translationText').value='';issues=[];rows=[];updateStats();renderIssues();renderRows();setDirty(false);saveState()};el('clearLocalBtn').onclick=clearAllLocal;el('addTerm').onclick=function(){terms.push({sourceTerm:'',approvedTranslation:'',forbiddenTranslations:[],note:''});renderTerms();markDirty()};el('toggleBulk').onclick=function(){el('bulkPanel').style.display='block'};el('cancelBulk').onclick=function(){el('bulkPanel').style.display='none'};el('importTerms').onclick=importBulkTerms;el('clearTerms').onclick=function(){if(!confirm('确定清空术语表吗？'))return;terms=[];renderTerms();markDirty()};el('runChecks').onclick=runChecks;el('makeRows').onclick=function(){makeRows(true)};
+document.addEventListener('input',function(e){var t=e.target;if(t.dataset.term){var i=Number(t.dataset.i);if(t.dataset.term==='src')terms[i].sourceTerm=t.value;if(t.dataset.term==='app')terms[i].approvedTranslation=t.value;if(t.dataset.term==='forbid')terms[i].forbiddenTranslations=parseForbidden(t.value);if(t.dataset.term==='note')terms[i].note=t.value;markDirty()}if(t.dataset.row){var r=rows[Number(t.dataset.i)];if(t.dataset.row==='rev'){r.revisedTranslation=t.value;if(t.value!==r.aiTranslation){r.status='已修改';var sel=document.querySelector('select[data-row="status"][data-i="'+t.dataset.i+'"]');if(sel)sel.value='已修改'}}if(t.dataset.row==='note')r.revisionNote=t.value;saveState()}});
+document.addEventListener('change',function(e){var t=e.target;if(t.dataset.issue){issues[Number(t.dataset.issue)].status=t.value;saveState()}if(t.dataset.row==='status'){rows[Number(t.dataset.i)].status=t.value;saveState()}if(t.dataset.style){checklistState[t.dataset.style]=t.checked;saveState()}});
+document.addEventListener('click',function(e){var del=e.target.closest('[data-delterm]');if(del){terms.splice(Number(del.dataset.delterm),1);renderTerms();markDirty();return}var row=e.target.closest('[data-jump-row]');if(row&&row.dataset.jumpRow){var target=el('edit-row-'+row.dataset.jumpRow);if(target){target.scrollIntoView({behavior:'smooth',block:'center'});target.classList.add('row-highlight');setTimeout(function(){target.classList.remove('row-highlight')},1600)}}});
+el('copyFinal').onclick=async function(){var text=finalText();if(!text){el('copyStatus').textContent='暂无可复制的最终译文。';return}try{await navigator.clipboard.writeText(text);el('copyStatus').textContent='最终译文已复制。'}catch(e){el('copyStatus').textContent='当前浏览器阻止复制，请使用 TXT 导出。'}};el('exportTxt').onclick=function(){download(baseName()+'_最终译文.txt',finalText())};el('exportMd').onclick=function(){download(baseName()+'_检查报告.md',reportMd(),'text/markdown;charset=utf-8')};el('exportRows').onclick=function(){download(baseName()+'_修改记录.csv',rowsCsv(),'text/csv;charset=utf-8')};el('exportTermsTop').onclick=el('exportTermsBottom').onclick=function(){download(baseName()+'_术语表.csv',termCsv(),'text/csv;charset=utf-8')};
+loadState();updateStats();renderTerms();renderIssues();renderRows();renderChecklist();setDirty(isDirty);
+</script>
+</body>
 </html>
